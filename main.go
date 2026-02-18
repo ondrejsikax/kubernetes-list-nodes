@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -13,10 +14,19 @@ func main() {
 	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
 	configOverrides := &clientcmd.ConfigOverrides{}
 	kubeConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverrides)
-	config, _ := kubeConfig.ClientConfig()
-	clientset, _ := kubernetes.NewForConfig(config)
-	nodeList, _ := clientset.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
+	config, err := kubeConfig.ClientConfig()
+	handleError(err)
+	clientset, err := kubernetes.NewForConfig(config)
+	handleError(err)
+	nodeList, err := clientset.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
+	handleError(err)
 	for _, node := range nodeList.Items {
 		fmt.Println(node.Name)
+	}
+}
+
+func handleError(err error) {
+	if err != nil {
+		log.Fatalln(err)
 	}
 }
